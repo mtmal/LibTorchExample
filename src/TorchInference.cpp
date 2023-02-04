@@ -32,10 +32,15 @@ TorchInference::~TorchInference()
 
 void TorchInference::initialise(const char* pathToModel)
 {
+    /** Empty image */
+    cv::Mat dummy(cv::Size(mWidth, mHeight), CV_8UC3, cv::Scalar(0));
+
     /** Load the model */
     mModule = torch::jit::load(pathToModel);
     /* Upload model to GPU */
     mModule.to(torch::kCUDA);
+    /* Invoke processImage once to fully initialise the module. Reuse mInputTensor */
+    processImage(dummy, mInputTensor);
 }
 
 torch::Tensor& TorchInference::processImage(const cv::Mat& inputImage, torch::Tensor& output)

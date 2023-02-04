@@ -1,7 +1,6 @@
 # TorchInference
 An example of inference using LibTorch.
 
-
 ## Requirements
 * OpenCV
 * PyTorch (LibTorch comes installed with it)

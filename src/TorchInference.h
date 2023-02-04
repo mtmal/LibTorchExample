@@ -45,7 +45,8 @@ public:
     virtual ~TorchInference();
 
     /**
-     * Initialises the inference by loading the model.
+     * Initialises the inference by loading the model. Also calls processImage with empty image to fully initialise
+     * the module. Obviously loading the model is not enough to have the module fully initialised.
      *  @param pathToModel the file path to the model.
      */
     void initialise(const char* pathToModel);

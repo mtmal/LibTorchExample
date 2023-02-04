@@ -1,5 +1,9 @@
 build
 
+# Torch Models
+*.pth
+*.pt
+
 # Prerequisites
 *.d
 

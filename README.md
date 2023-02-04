@@ -5,7 +5,7 @@ An example of inference using LibTorch.
 ## Requirements
 * OpenCV
 * PyTorch (LibTorch comes installed with it)
-* cmake 3.12 (lower versions do not resolve torch dependencies correctly)
+* cmake 3.12 (older versions do not resolve torch dependencies correctly)
 
 ## Building
 ```

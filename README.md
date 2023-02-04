@@ -1,4 +1,4 @@
-# LibTorchInference
+# TorchInference
 An example of inference using LibTorch.
 
 

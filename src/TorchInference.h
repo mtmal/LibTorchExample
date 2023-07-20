@@ -33,11 +33,9 @@ class TorchInference
 {
 public:
     /**
-     * Basic constructor, initialises variables.
-     *  @param width the width of images in pixels.
-     *  @param height the height of images in pixels.
+     * Basic constructor.
      */
-    TorchInference(const int width, const int height);
+    TorchInference();
 
     /**
      * Class destructor.
@@ -48,28 +46,37 @@ public:
      * Initialises the inference by loading the model. Also calls processImage with empty image to fully initialise
      * the module. Obviously loading the model is not enough to have the module fully initialised.
      *  @param pathToModel the file path to the model.
+     *  @param width the width of images in pixels.
+     *  @param height the height of images in pixels.
+     *  @param channels the number of channels, 1 or 3.
      */
-    void initialise(const char* pathToModel);
+    void initialise(const char* pathToModel, const int width, const int height, const int channels);
 
     /**
-     * Processes input image through the module to provide output tensor.
-     *  @param inputImage an input image to process. It is expected to be a coloured image of configured size.
+     * Processes input BGR image through the module to provide output tensor.
+     *  @param inputImage an input image to process. It is expected to be a BGR image of configured size.
      *  @param[out] output the result of applying @p inputImage through the model. Tensor is detached and moved to CPU.
      *  @return the same @p output reference to allow chained operations on the output tensor.
      */
     torch::Tensor& processImage(const cv::Mat& inputImage, torch::Tensor& output);
 
+    /**
+     * Processes input image through the module to provide output tensor.
+     *  @param inputImage an input image to process. It is expected to be a greyscale image of configured size.
+     *  @param[out] output the result of applying @p inputImage through the model. Tensor is detached and moved to CPU.
+     *  @return the same @p output reference to allow chained operations on the output tensor.
+     */
+    torch::Tensor& processGreyImage(const cv::Mat& inputImage, torch::Tensor& output);
+
 private:
-    /** The width of images in pixels. */
-    int mWidth;
-    /** The height of images in pixels. */
-    int mHeight;
+    /** Temporary buffer for converting images to floating point representation. */
+    cv::Mat mFloatImage;
+    /** Input tensor sizes. */
+    std::array<int64_t, 4> mSizes;
     /** JIT module that converts input image into trained output. */
     torch::jit::script::Module mModule;
     /** Input data as a tensor. */
     torch::Tensor mInputTensor;
-    /** Floating-point representation of input image. */
-    cv::Mat mFloatImage;
 };
 
 #endif /* TORCHINFERENCE_H_ */

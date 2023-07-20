@@ -23,11 +23,11 @@
 #include <opencv2/imgcodecs.hpp>
 #include <TorchInference.h>
 
-void loadModel(const cv::Mat& image, TorchInference& torchInference)
+void loadModel(const std::string& modelPath, const cv::Mat& image, TorchInference& torchInference)
 {
     int64 time2;
     int64 time1 = cv::getTickCount();
-    torchInference.initialise("./drive_road_following_model_cpp.pt", image.cols, image.rows, 3);
+    torchInference.initialise(modelPath, image.cols, image.rows, 3);
     time2 = cv::getTickCount();
     printf("Model loaded in %f \n", static_cast<double>(time2 - time1) / cv::getTickFrequency());
 }
@@ -42,22 +42,30 @@ void processCPU(const cv::Mat& image, TorchInference& torchInference, torch::Ten
             output[0].item().toFloat(), static_cast<double>(time2 - time1) / cv::getTickFrequency());
 }
 
-int main()
+int main(int argc, char** argv)
 {
     /** Loop iterator */
     int i;
     /** Input image */
-    const cv::Mat image = cv::imread("./0.453627_-1.000000_c8155f0a-fd0e-11ec-b27a-3413e86352f4.jpg", cv::IMREAD_UNCHANGED);
+    cv::Mat image;
     /** Wrapper class to perform Torch inference */
     TorchInference torchInference;
     /** Testing output */
     torch::Tensor output;
 
-    loadModel(image, torchInference);
-
-    for (i = 0; i < 10; ++i)
+    if (argc > 1)
     {
-        processCPU(image, torchInference, output);
+        image = cv::imread("./0.453627_-1.000000_c8155f0a-fd0e-11ec-b27a-3413e86352f4.jpg", cv::IMREAD_UNCHANGED);
+        loadModel(argv[1], image, torchInference);
+
+        for (i = 0; i < 10; ++i)
+        {
+            processCPU(image, torchInference, output);
+        }
+    }
+    else
+    {
+        puts("Please provide a path to .pt model as the first argument.");
     }
 
     return 0;

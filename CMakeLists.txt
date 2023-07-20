@@ -28,4 +28,3 @@ add_executable(test_Inference tests/test_inference.cpp)
 target_link_libraries(test_Inference TorchInference)
 
 file(COPY tests/0.453627_-1.000000_c8155f0a-fd0e-11ec-b27a-3413e86352f4.jpg DESTINATION ./)
-file(COPY drive_road_following_model_cpp.pt DESTINATION ./)

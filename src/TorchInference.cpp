@@ -66,7 +66,7 @@ TorchInference::~TorchInference()
 {
 }
 
-void TorchInference::initialise(const char* pathToModel, const int width, const int height, const int channels)
+void TorchInference::initialise(const std::string& pathToModel, const int width, const int height, const int channels)
 {
     torch::Tensor output;
 

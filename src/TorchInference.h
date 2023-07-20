@@ -50,7 +50,7 @@ public:
      *  @param height the height of images in pixels.
      *  @param channels the number of channels, 1 or 3.
      */
-    void initialise(const char* pathToModel, const int width, const int height, const int channels);
+    void initialise(const std::string& pathToModel, const int width, const int height, const int channels);
 
     /**
      * Processes input BGR image through the module to provide output tensor.

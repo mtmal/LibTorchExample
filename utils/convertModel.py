@@ -24,19 +24,16 @@
 
 import argparse
 import pathlib
+import torch
+import torchvision
 
 
-CATEGORIES = ['apex_2']
-
-
-def convertModels(inputPath, height, width, channels, outputPath):
-    import torch
-    import torchvision
-
-    device = torch.device('cuda')
+def convertModels(inputPath: str, height: int, width: int, channels: int, outputPath: str):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # this needs to match the trained model from jetracer_road_following repository
     model = torchvision.models.resnet18(pretrained=False)
-    model.fc = torch.nn.Linear(512, 2 * len(CATEGORIES))
+    model.conv1 = torch.nn.Conv2d(channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
+    model.fc = torch.nn.Linear(512, 2)
     model = model.cuda().eval().half()
 
     model.load_state_dict(torch.load(inputPath))

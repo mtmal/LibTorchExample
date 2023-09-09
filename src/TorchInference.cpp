@@ -79,7 +79,14 @@ void TorchInference::initialise(const std::string& pathToModel, const int width,
     /* Upload model to GPU */
     mModule.to(torch::kCUDA, torch::kFloat16);
     /* Invoke processImage once to fully initialise the module. Reuse mInputTensor */
-    processImage(cv::Mat(cv::Size(width, height), CV_MAKETYPE(CV_8U, channels), cv::Scalar(0)), output);
+    if (channels == 1)
+    {
+        processGreyImage(cv::Mat(cv::Size(width, height), CV_MAKETYPE(CV_8U, channels), cv::Scalar(0)), output);
+    }
+    else
+    {
+        processImage(cv::Mat(cv::Size(width, height), CV_MAKETYPE(CV_8U, channels), cv::Scalar(0)), output);
+    }
 }
 
 torch::Tensor& TorchInference::processImage(const cv::Mat& inputImage, torch::Tensor& output)

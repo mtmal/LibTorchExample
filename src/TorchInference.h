@@ -20,8 +20,7 @@
 // SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef TORCHINFERENCE_H_
-#define TORCHINFERENCE_H_
+#pragma once
 
 #include <opencv2/core/mat.hpp>
 #include <torch/script.h>
@@ -78,5 +77,3 @@ private:
     /** Input data as a tensor. */
     torch::Tensor mInputTensor;
 };
-
-#endif /* TORCHINFERENCE_H_ */

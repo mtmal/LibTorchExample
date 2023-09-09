@@ -20,7 +20,7 @@ include_directories(${TORCH_INCLUDE_DIR})
 include_directories(src)
 
 # build the actual library
-add_library(TorchInference SHARED src/TorchInference.h src/TorchInference.cpp)
+add_library(TorchInference SHARED src/TorchInference.cpp)
 target_link_libraries(TorchInference ${TORCH_LIBRARIES} ${OpenCV_LIBRARIES})
 
 # add the test application

@@ -49,14 +49,12 @@ void processCPU(const cv::Mat& image, TorchInference& torchInference, torch::Ten
             break;
     }
     time2 = cv::getTickCount();
-    printf("Estimated: %f, processed in: %f \n", 
-            output[0].item().toFloat(), static_cast<double>(time2 - time1) / cv::getTickFrequency());
+    printf("Estimated steering: %f, estimated throttle: %f, processed in: %f \n", 
+            output[0].item().toFloat(), output[1].item().toFloat(), static_cast<double>(time2 - time1) / cv::getTickFrequency());
 }
 
 int main(int argc, char** argv)
 {
-    /** Loop iterator */
-    int i;
     /** Input image */
     cv::Mat image;
     /** Wrapper class to perform Torch inference */
@@ -77,7 +75,7 @@ int main(int argc, char** argv)
         
         loadModel(argv[1], image, torchInference);
 
-        for (i = 0; i < 10; ++i)
+        for (int i = 0; i < 10; ++i)
         {
             processCPU(image, torchInference, output);
         }

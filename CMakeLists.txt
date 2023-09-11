@@ -8,6 +8,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-fPIC -g -pedantic -Wall -Wextra")
 
+# specify older CUDA standard for CUDA 10.2. Needs to be done for Jetson Nano with Ubuntu 20.04
+set(CMAKE_CUDA_STANDARD 14)
+
 # get OpenCV
 find_package(OpenCV 4.5 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIR})

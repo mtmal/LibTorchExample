@@ -25,59 +25,85 @@
 
 void loadModel(const std::string& modelPath, const cv::Mat& image, TorchInference& torchInference)
 {
-    int64 time2;
     int64 time1 = cv::getTickCount();
     torchInference.initialise(modelPath, image.cols, image.rows, image.channels());
-    time2 = cv::getTickCount();
-    printf("Model loaded in %f \n", static_cast<double>(time2 - time1) / cv::getTickFrequency());
+    printf("Model loaded in %f \n", static_cast<double>(cv::getTickCount() - time1) / cv::getTickFrequency());
 }
 
-void processCPU(const cv::Mat& image, TorchInference& torchInference, torch::Tensor& output)
+void getResults(const bool tta, const at::Tensor& tensor, float& meanSteering, float& meanThrottle)
 {
-    int64 time2;
-    int64 time1 = cv::getTickCount();
-    switch (image.channels())
+    meanSteering = 0.0f;
+    meanThrottle = 0.0f;
+    if (static_cast<int>(tensor.size(0)) > 0)
     {
-        case 1:
-            output = torchInference.processGreyImage(image, output).flatten();
-            break;
-        case 3:
-            output = torchInference.processImage(image, output).flatten();
-            break;
-        default:
-            printf("Unsupported number of channels %d \n", image.channels());
-            break;
+        for (int i = 0; i < static_cast<int>(tensor.size(0)); ++i)
+        {
+            if (tta && (i >= (static_cast<int>(tensor.size(0)) / 2)))
+            {
+                meanSteering -= tensor[i][0].item().toFloat();
+            }
+            else
+            {
+                meanSteering += tensor[i][0].item().toFloat();
+            }
+            meanThrottle += tensor[i][1].item().toFloat();
+        }
+        meanSteering /= static_cast<int>(tensor.size(0));
+        meanThrottle /= static_cast<int>(tensor.size(0));
     }
-    time2 = cv::getTickCount();
+}
+
+void processMonoRGB(const bool tta, const cv::Mat& image, TorchInference& torchInference, at::Tensor& output)
+{
+    float steering = 0;
+    float throttle = 0;
+    int64 time1 = cv::getTickCount();
+    torchInference.processImage(tta, image, output);
+    getResults(tta, output, steering, throttle);
     printf("Estimated steering: %f, estimated throttle: %f, processed in: %f \n", 
-            output[0].item().toFloat(), output[1].item().toFloat(), static_cast<double>(time2 - time1) / cv::getTickFrequency());
+            steering, throttle, static_cast<double>(cv::getTickCount() - time1) / cv::getTickFrequency());
+}
+
+void processStereoGrey(const bool tta, const cv::Mat& leftImage, const cv::Mat& rightImage, TorchInference& torchInference, at::Tensor& output)
+{
+    float steering = 0;
+    float throttle = 0;
+    int64 time1 = cv::getTickCount();
+    torchInference.processGreyImage(tta, leftImage, rightImage, output);
+    getResults(tta, output, steering, throttle);
+    printf("Estimated steering: %f, estimated throttle: %f, processed in: %f \n", 
+            steering, throttle, static_cast<double>(cv::getTickCount() - time1) / cv::getTickFrequency());
 }
 
 int main(int argc, char** argv)
 {
-    /** Input image */
-    cv::Mat image;
-    /** Wrapper class to perform Torch inference */
-    TorchInference torchInference;
-    /** Testing output */
-    torch::Tensor output;
-
     if (argc > 1)
     {
+        /** Wrapper class to perform Torch inference */
+        TorchInference torchInference;
+        /** Testing output */
+        at::Tensor output;
+
         if (argc > 2 && (0 == strcmp(argv[2], "grey") || 0 == strcmp(argv[2], "gray")))
         {
-            image = cv::imread("./0.000000_-1.000000_599.jpg", cv::IMREAD_GRAYSCALE);
+            bool tta = ((argc > 3) && (0 == strcmp(argv[3], "tta")));
+            cv::Mat leftImage  = cv::imread("./1.000000_-1.000000_988_left.jpg",  cv::IMREAD_GRAYSCALE);
+            cv::Mat rightImage = cv::imread("./1.000000_-1.000000_988_right.jpg", cv::IMREAD_GRAYSCALE);
+            loadModel(argv[1], leftImage, torchInference);
+            for (int i = 0; i < 10; ++i)
+            {
+                processStereoGrey(tta, leftImage, rightImage, torchInference, output);
+            }
         }
         else
         {
-            image = cv::imread("./0.453627_-1.000000_c8155f0a-fd0e-11ec-b27a-3413e86352f4.jpg", cv::IMREAD_UNCHANGED);
-        }
-        
-        loadModel(argv[1], image, torchInference);
-
-        for (int i = 0; i < 10; ++i)
-        {
-            processCPU(image, torchInference, output);
+            bool tta = ((argc > 2) && (0 == strcmp(argv[2], "tta")));
+            cv::Mat image = cv::imread("./0.453627_-1.000000_c8155f0a-fd0e-11ec-b27a-3413e86352f4.jpg", cv::IMREAD_UNCHANGED);
+            loadModel(argv[1], image, torchInference);
+            for (int i = 0; i < 10; ++i)
+            {
+                processMonoRGB(tta, image, torchInference, output);
+            }
         }
     }
     else

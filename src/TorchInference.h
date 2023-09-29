@@ -23,7 +23,12 @@
 #pragma once
 
 #include <opencv2/core/mat.hpp>
-#include <torch/script.h>
+#include <torch/csrc/jit/api/module.h>
+
+namespace at
+{
+    class Tensor;
+}
 
 /**
  * This class represents a basic example of using Torch to perform inference using half precision.
@@ -53,27 +58,37 @@ public:
 
     /**
      * Processes input BGR image through the module to provide output tensor.
+     *  @param tta flag to indicate if test time augmentation should be applied. If true, @p inputImage is also flipped and the batch size is doubled.
      *  @param inputImage an input image to process. It is expected to be a BGR image of configured size.
      *  @param[out] output the result of applying @p inputImage through the model. Tensor is detached and moved to CPU.
      *  @return the same @p output reference to allow chained operations on the output tensor.
      */
-    torch::Tensor& processImage(const cv::Mat& inputImage, torch::Tensor& output);
+    at::Tensor& processImage(const bool tta, const cv::Mat& inputImage, at::Tensor& output);
 
     /**
-     * Processes input image through the module to provide output tensor.
-     *  @param inputImage an input image to process. It is expected to be a greyscale image of configured size.
-     *  @param[out] output the result of applying @p inputImage through the model. Tensor is detached and moved to CPU.
+     * Processes stereo greyscale images through the module to provide output tensor.
+     *  @param tta flag to indicate if test time augmentation should be applied. If true, @p leftImage and @p rightImage are also flipped and the batch size is doubled.
+     *  @param leftImage an image from a left camera to process. It is expected to be a greyscale image of configured size.
+     *  @param rightImage an image from a right camera to process. It is expected to be a greyscale image of configured size.
+     *  @param[out] output the result of applying @p leftImage and @p rightImage through the model (batch size 2). Tensor is detached and moved to CPU.
      *  @return the same @p output reference to allow chained operations on the output tensor.
      */
-    torch::Tensor& processGreyImage(const cv::Mat& inputImage, torch::Tensor& output);
+    at::Tensor& processGreyImage(const bool tta, const cv::Mat& leftImage, const cv::Mat& rightImage, at::Tensor& output);
 
 private:
+    /**
+     * Converts an image by scaling it to be from zero to one and applying standarisation based on ImageNet values.
+     *  @param image an image to process.
+     *  @param[out] tensor a resulting tensor.
+     */
+    void convertImage(const cv::Mat& image, at::Tensor& tensor);
+
+    /** The number of channels in images. */
+    int mChannels;
     /** Temporary buffer for converting images to floating point representation. */
     cv::Mat mFloatImage;
     /** Input tensor sizes. */
     std::array<int64_t, 4> mSizes;
     /** JIT module that converts input image into trained output. */
     torch::jit::script::Module mModule;
-    /** Input data as a tensor. */
-    torch::Tensor mInputTensor;
 };

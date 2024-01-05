@@ -40,6 +40,5 @@ add_executable(test_Inference tests/test_inference.cpp)
 target_link_libraries(test_Inference TorchInference)
 
 file(COPY tests/0.453627_-1.000000_c8155f0a-fd0e-11ec-b27a-3413e86352f4.jpg DESTINATION ./)
-file(COPY tests/0.000000_-1.000000_599.jpg DESTINATION ./)
 file(COPY tests/1.000000_-1.000000_988_left.jpg DESTINATION ./)
 file(COPY tests/1.000000_-1.000000_988_right.jpg DESTINATION ./)
